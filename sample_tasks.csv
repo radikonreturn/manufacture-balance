@@ -1,0 +1,11 @@
+task_id,task_name,duration,predecessors
+T1,Body Cutting,6,
+T2,Hole Drilling,4,T1
+T3,Bending,3,T1
+T4,Welding A,5,T2
+T5,Welding B,4,T2 T3
+T6,Surface Grinding,3,T4
+T7,Paint Preparation,2,T5
+T8,Painting,6,T6 T7
+T9,Quality Inspection,4,T8
+T10,Packaging,2,T9
