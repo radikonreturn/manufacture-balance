@@ -3,6 +3,7 @@ import pandas as pd
 import io
 
 from ui.styles import C
+from ui.icons import svg
 from ui.components import metric_card, create_dag_figure
 from data.parser import parse_csv
 from engine.graph import PrecedenceGraph
@@ -15,23 +16,23 @@ def load_graph(df: pd.DataFrame) -> PrecedenceGraph:
 
 
 def render_input_tab():
-    st.markdown('<div class="sh">📥 Task Data Input</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sh">{svg("download", 18, C["primary"])} Task Data Input</div>', unsafe_allow_html=True)
 
     data_source = st.radio(
         "Select data source",
-        ["📂 Sample Data", "📤 Upload CSV", "✏️ Manual Entry"],
+        ["Sample Data", "Upload CSV", "Manual Entry"],
         horizontal=True, label_visibility="collapsed",
     )
 
     df = None
 
-    if data_source == "📂 Sample Data":
+    if data_source == "Sample Data":
         try:
             df = parse_csv("sample_tasks.csv")
             st.success("Loaded 10 tasks from `sample_tasks.csv`")
         except Exception as e:
             st.error(str(e))
-    elif data_source == "📤 Upload CSV":
+    elif data_source == "Upload CSV":
         uploaded = st.file_uploader("Upload CSV", type=["csv"], help="Columns: task_id, task_name, duration, predecessors")
         if uploaded:
             try:

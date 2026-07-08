@@ -9,6 +9,7 @@ import streamlit as st
 from data.database import init_db
 
 from ui.styles import C, apply_styles
+from ui.icons import svg
 from ui.tabs.input_tab import render_input_tab
 from ui.tabs.results_tab import render_results_tab
 from ui.tabs.operator_tab import render_operator_tab
@@ -18,7 +19,7 @@ from ui.tabs.compare_tab import render_compare_tab
 # ── Page Config ───────────────────────────────────────────────────── #
 st.set_page_config(
     page_title="Manufacture Balance 4.0",
-    page_icon="🏭",
+    page_icon=":factory:",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -55,11 +56,11 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("### ⏱️ SIMULATION")
+    st.markdown(f'### {svg("clock", 18, C["primary"])} SIMULATION', unsafe_allow_html=True)
     cycle_time = st.slider("Cycle Time (sec)", 5.0, 60.0, 15.0, 0.5)
     algorithm = st.selectbox("Algorithm", ["RPW (Ranked Positional Weight)", "Greedy (Largest Candidate)", "Compare (Both)"])
 
-    st.markdown("### ⚡ ENERGY MODEL")
+    st.markdown(f'### {svg("lightning", 18, C["warning"])} ENERGY MODEL', unsafe_allow_html=True)
     kwh_rate = st.number_input("Station Power (kW)", 0.1, 50.0, 7.2, 0.1)
     kwh_per_sec = kwh_rate / 3600
     cost_per_kwh = st.number_input("Energy Cost ($/kWh)", 0.1, 20.0, 2.5, 0.1)
@@ -67,7 +68,7 @@ with st.sidebar:
 
 # ── Tabs ──────────────────────────────────────────────────────────── #
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📥 Data Input", "📊 Results", "👷 Operator JES", "🌿 Sustainability", "⚖️ Compare"
+    "Data Input", "Results", "Operator JES", "Sustainability", "Compare"
 ])
 
 with tab1:

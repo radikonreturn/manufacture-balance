@@ -1,0 +1,22 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Local databases
+*.db
+alb_data.db
+
+# User configurations & IDEs
+.vscode/
+.idea/
+.DS_Store
+*.xlsx

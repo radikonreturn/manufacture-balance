@@ -3,6 +3,7 @@ import plotly.graph_objects as go
 
 from data.database import list_scenarios, load_scenario
 from ui.styles import C, PLOTLY_LAYOUT
+from ui.icons import svg
 
 
 def delta_metric(label, v1, v2, suffix="", invert=False):
@@ -26,7 +27,7 @@ def delta_metric(label, v1, v2, suffix="", invert=False):
 
 
 def render_compare_tab():
-    st.markdown('<div class="sh">⚖️ Scenario Comparison</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sh">{svg("scale", 18, C["primary"])} Scenario Comparison</div>', unsafe_allow_html=True)
     saved = list_scenarios()
 
     if len(saved) < 2:
@@ -48,7 +49,7 @@ def render_compare_tab():
         m1 = sc1["results"]
         m2 = sc2["results"]
 
-        st.markdown("### 📈 Metric Deltas")
+        st.markdown(f'### {svg("trend_up", 16, C["primary"])} Metric Deltas', unsafe_allow_html=True)
         mc1, mc2, mc3, mc4 = st.columns(4)
 
         with mc1:

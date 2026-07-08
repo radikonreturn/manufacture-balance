@@ -9,11 +9,12 @@ from engine.energy_waste import calculate_energy_waste
 from engine.jes_generator import generate_jes
 from data.database import save_scenario
 from ui.styles import C, PLOTLY_LAYOUT
+from ui.icons import svg
 from ui.components import metric_card, generate_excel_export
 
 
 def render_results_tab(algorithm, cycle_time, kwh_per_sec, cost_per_kwh, co2_factor):
-    st.markdown('<div class="sh">📊 Line Balancing Results</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sh">{svg("bar_chart", 18, C["primary"])} Line Balancing Results</div>', unsafe_allow_html=True)
 
     if "graph" not in st.session_state:
         st.warning("⚠️ Load data in the **Data Input** tab first.")
@@ -100,7 +101,7 @@ def render_results_tab(algorithm, cycle_time, kwh_per_sec, cost_per_kwh, co2_fac
             cc1, cc2 = st.columns(2)
 
             with cc1:
-                st.markdown("### 💾 Save Scenario to Database")
+                st.markdown(f'### {svg("save", 16, C["primary"])} Save Scenario to Database', unsafe_allow_html=True)
                 scen_name = st.text_input("Name", value=f"{algo_for_export[:3]}_CT{cycle_time}", label_visibility="collapsed")
                 if st.button("Save Scenario", type="primary"):
                     try:
@@ -115,7 +116,7 @@ def render_results_tab(algorithm, cycle_time, kwh_per_sec, cost_per_kwh, co2_fac
                         st.error(str(e))
 
             with cc2:
-                st.markdown("### 📥 Download Excel Report")
+                st.markdown(f'### {svg("download", 16, C["primary"])} Download Excel Report', unsafe_allow_html=True)
                 metrics_exp = st.session_state.get(f"metrics_{algo_for_export.lower()}")
                 energy_exp = st.session_state.get(f"energy_{algo_for_export.lower()}")
                 jes_exp = generate_jes(stations_for_export, cycle_time)
