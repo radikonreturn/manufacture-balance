@@ -31,7 +31,7 @@ def render_compare_tab():
     saved = list_scenarios()
 
     if len(saved) < 2:
-        st.info("⚠️ Please save at least 2 scenarios in the Results tab to compare them here.")
+        st.info("Data baseline missing: Save at least 2 scenarios in the Results tab to execute comparison.", icon=None)
     else:
         c1, c2 = st.columns(2)
         with c1:

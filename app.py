@@ -19,7 +19,7 @@ from ui.tabs.compare_tab import render_compare_tab
 # ── Page Config ───────────────────────────────────────────────────── #
 st.set_page_config(
     page_title="Manufacture Balance 4.0",
-    page_icon=":factory:",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -30,15 +30,19 @@ apply_styles()
 
 # ── Header ────────────────────────────────────────────────────────── #
 st.markdown(f"""
-<div style="text-align:center; padding:1.5rem 0 2rem;">
-    <div style="font-family:'Fira Code',monospace; font-size:2.5rem; font-weight:800; letter-spacing:-.03em; line-height:1.1;">
-        <span style="color:{C['primary']};">MANUFACTURE</span> BALANCE
-        <span style="font-size:1.1rem; vertical-align:super; color:{C['muted']};">4.0</span>
+<div style="display:flex; justify-content:between; align-items:center; border-bottom:2px solid {C['border']}; padding-bottom:1rem; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+    <div style="flex-grow:1;">
+        <div style="font-family:'Fira Code',monospace; font-size:1.8rem; font-weight:700; letter-spacing:-.02em; line-height:1.1;">
+            MANUFACTURE<span style="color:{C['primary']};">.BALANCE</span> <span style="font-size:0.9rem; color:{C['muted']}; font-weight:400; vertical-align:middle;">[v4.0]</span>
+        </div>
+        <div style="font-size:0.75rem; color:{C['muted']}; font-family:'Fira Code',monospace; margin-top:0.25rem; letter-spacing:0.02em;">
+            SYSTEM_STATUS: ACTIVE // DECISION_SUPPORT_ENGINE
+        </div>
     </div>
-    <div style="display:flex; justify-content:center; gap:.6rem; margin-top:.8rem;">
+    <div style="display:flex; gap:.5rem; align-items:center;">
         <span class="b b-i">LINE OPTIMIZATION</span>
         <span class="b b-g">ENERGY EFFICIENCY</span>
-        <span class="b b-i">OPERATOR 4.0</span>
+        <span class="b b-p">OPERATOR 4.0</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -46,12 +50,12 @@ st.markdown(f"""
 # ── Sidebar ───────────────────────────────────────────────────────── #
 with st.sidebar:
     st.markdown(f"""
-    <div style="text-align:center; padding:.5rem 0 1rem; border-bottom:1px solid {C['border']}; margin-bottom:1rem;">
+    <div style="padding:.5rem 0 1rem; border-bottom:1px solid {C['border']}; margin-bottom:1rem;">
         <div style="font-family:'Fira Code',monospace; font-size:1.1rem; font-weight:700;">
-            <span style="color:{C['primary']};">MB</span><span style="color:{C['text']};">4.0</span>
+            SYSTEM<span style="color:{C['primary']};">.CTRL</span>
         </div>
-        <div style="font-size:.6rem; color:{C['muted']}; letter-spacing:.1em; text-transform:uppercase; margin-top:.3rem;">
-            CONTROL PANEL
+        <div style="font-size:.65rem; color:{C['muted']}; letter-spacing:.1em; text-transform:uppercase; margin-top:.3rem;">
+            PARAMETER CONFIGURATION
         </div>
     </div>
     """, unsafe_allow_html=True)

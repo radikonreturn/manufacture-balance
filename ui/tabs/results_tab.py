@@ -17,7 +17,7 @@ def render_results_tab(algorithm, cycle_time, kwh_per_sec, cost_per_kwh, co2_fac
     st.markdown(f'<div class="sh">{svg("bar_chart", 18, C["primary"])} Line Balancing Results</div>', unsafe_allow_html=True)
 
     if "graph" not in st.session_state:
-        st.warning("⚠️ Load data in the **Data Input** tab first.")
+        st.warning("Dataset missing: Load data in the Data Input tab first.", icon=None)
     else:
         graph = st.session_state["graph"]
         try:
@@ -111,7 +111,7 @@ def render_results_tab(algorithm, cycle_time, kwh_per_sec, cost_per_kwh, co2_fac
                         last_e = st.session_state.get(e_key)
                         tdf = st.session_state.get("task_df")
                         sid = save_scenario(scen_name, cycle_time, algo_for_export.lower(), tdf.to_dict("records") if tdf is not None else [], last_m, stations_for_export, last_e.to_dict() if last_e else {})
-                        st.success(f"Saved! (ID: {sid})")
+                        st.success(f"Scenario saved successfully (ID: {sid})", icon=None)
                     except Exception as e:
                         st.error(str(e))
 

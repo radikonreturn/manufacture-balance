@@ -124,14 +124,14 @@ def format_jes_markdown(jes_data: Dict[str, Any]) -> str:
             f"(`{safe_id}`)"
         )
         lines.append("")
-        lines.append(f"- ⏱️ **Duration:** {step['duration']} sec")
+        lines.append(f"- **Duration:** {step['duration']} sec")
         lines.append(
-            f"- 📊 **Cumulative:** {step['cumulative_time']} / "
+            f"- **Cumulative:** {step['cumulative_time']} / "
             f"{jes_data['cycle_time']} sec"
         )
-        lines.append(f"- ⏳ **Remaining:** {step['remaining_time']} sec")
+        lines.append(f"- **Remaining:** {step['remaining_time']} sec")
         if safe_kp:
-            lines.append(f"- 📌 **Note:** {safe_kp}")
+            lines.append(f"- **Note:** {safe_kp}")
         lines.append("")
 
     # Utilization bar

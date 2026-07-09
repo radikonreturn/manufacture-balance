@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Manufacture Balance 4.0</title>
+<meta name="description" content="Assembly Line Balancing · Sustainable Lean Manufacturing · Operator 4.0 Dashboard"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<style>
+/* ── CSS Variables ── */
+:root{
+  --bg:#090a0f;--card:#121520;--card2:#1c2030;
+  --pri:#00f0ff;--pri2:#38bdf8;
+  --ok:#10b981;--ok2:#34d399;
+  --warn:#fbbf24;--err:#ef4444;--info:#38bdf8;
+  --txt:#f4f4f5;--muted:#71717a;
+  --bdr:#202738;
+  --radius:0px;--transition:.2s ease;
+}
+
+/* ── Reset & Base ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--card2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--pri)}
+input,select,textarea,button{font-family:inherit}
+a{color:var(--pri);text-decoration:none}
+
+/* ── Layout ── */
+.layout{display:flex;min-height:100vh}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:280px;min-width:280px;
+  background:#090a0f;
+  border-right:1px solid var(--bdr);
+  padding:1.5rem 1.25rem;
+  display:flex;flex-direction:column;gap:1.25rem;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sidebar-logo{text-align:center;padding-bottom:1rem;border-bottom:1px solid var(--bdr)}
+.sidebar-logo .brand{font-family:'Fira Code',monospace;font-size:1.15rem;font-weight:700}
+.sidebar-logo .brand span{color:var(--pri)}
+.sidebar-logo .sub{font-size:.6rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:.3rem}
+.sb-section{font-family:'Fira Code',monospace;font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.15em;margin:1rem 0 .6rem;display:flex;align-items:center;gap:.5rem}
+.sb-section svg{flex-shrink:0}
+label.ctrl-label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:.4rem}
+.ctrl-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem}
+.ctrl-val{font-family:'Fira Code',monospace;color:var(--pri);font-size:.85rem;font-weight:600}
+
+/* Slider */
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:99px;
+  background:linear-gradient(90deg,var(--pri) var(--pct,50%),var(--card2) var(--pct,50%));
+  outline:none;cursor:pointer;margin:0;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--pri);border:2px solid var(--bg);cursor:pointer;
+  box-shadow:0 0 8px rgba(99,102,241,.5);transition:transform .15s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+
+/* Number Input */
+.num-input{
+  width:100%;background:var(--card2);border:1px solid var(--bdr);
+  border-radius:8px;padding:.45rem .7rem;color:var(--txt);font-size:.85rem;
+  transition:border-color var(--transition);outline:none;
+}
+.num-input:focus{border-color:rgba(99,102,241,.5)}
+
+/* Select */
+.sel{
+  width:100%;background:var(--card2);border:1px solid var(--bdr);
+  border-radius:8px;padding:.5rem .7rem;color:var(--txt);font-size:.85rem;
+  cursor:pointer;outline:none;transition:border-color var(--transition);
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .7rem center;padding-right:2rem;
+}
+.sel:focus{border-color:rgba(99,102,241,.5)}
+.sel option{background:var(--card2)}
+
+/* ── Main content ── */
+.main{flex:1;padding:1.5rem 2rem 3rem;max-width:1200px;min-width:0}
+
+/* ── Header ── */
+.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--bdr);padding-bottom:1rem;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
+.header-title{font-family:'Fira Code',monospace;font-size:1.8rem;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.header-title .hi{color:var(--pri)}
+.header-badges{display:flex;gap:.5rem;align-items:center}
+
+/* ── Tabs ── */
+.tabs{display:flex;border-bottom:2px solid var(--bdr);gap:4px;margin-bottom:1.75rem}
+.tab-btn{
+  padding:.6rem 1.25rem;background:var(--card);border:1px solid var(--bdr);
+  border-bottom:none;border-radius:0px;
+  color:var(--muted);font-weight:500;font-size:.85rem;cursor:pointer;
+  transition:all var(--transition);font-family:'Fira Code',monospace;
+}
+.tab-btn:hover{color:var(--txt);background:var(--card2)}
+.tab-btn.active{color:var(--pri);background:var(--card2);border-top:2px solid var(--pri);font-weight:700}
+.tab-panel{display:none;animation:fadeIn .2s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Section heading ── */
+.sh{
+  font-family:'Fira Code',monospace;font-size:1.1rem;font-weight:600;
+  color:var(--txt);padding-bottom:.5rem;border-bottom:1px solid var(--bdr);
+  margin:1.5rem 0 1.25rem;display:flex;align-items:center;gap:.5rem;
+}
+
+/* ── Metric cards ── */
+.mc{
+  background:var(--card);border:1px solid var(--bdr);border-left:3px solid var(--pri);border-radius:var(--radius);
+  padding:1.25rem 1rem;text-align:left;transition:all var(--transition);
+}
+.mc:hover{border-color:var(--pri);background:var(--card2)}
+.mc .v{font-family:'Fira Code',monospace;font-size:2rem;font-weight:700;line-height:1;margin-bottom:.35rem;color:var(--txt)}
+.mc .l{font-size:.65rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.1rem}
+
+.metrics-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1.25rem}
+.metrics-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.25rem}
+.metrics-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem}
+
+/* ── Badges ── */
+.b{display:inline-flex;align-items:center;padding:.25rem .55rem;border-radius:0px;font-size:.65rem;font-weight:600;font-family:'Fira Code',monospace;letter-spacing:.05em;text-transform:uppercase}
+.b-g{background:rgba(16,185,129,.06);color:#34d399;border:1px solid rgba(16,185,129,.2)}
+.b-y{background:rgba(245,158,11,.06);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
+.b-r{background:rgba(239,68,68,.06);color:#f87171;border:1px solid rgba(239,68,68,.2)}
+.b-i{background:rgba(0,240,255,.06);color:#38bdf8;border:1px solid rgba(0,240,255,.2)}
+.b-p{background:rgba(168,85,247,.06);color:#c084fc;border:1px solid rgba(168,85,247,.2)}
+
+/* ── Radio group ── */
+.radio-group{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.radio-btn{
+  padding:.5rem 1rem;border-radius:8px;border:1px solid var(--bdr);
+  background:var(--card);color:var(--muted);cursor:pointer;font-size:.85rem;
+  transition:all var(--transition);font-weight:500;
+}
+.radio-btn.active,.radio-btn:hover{background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.4);color:var(--pri)}
+.radio-btn.active{font-weight:700}
+
+/* ── Manual entry table ── */
+.manual-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-bottom:1rem}
+.manual-table th{background:var(--card2);color:var(--muted);font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;padding:.65rem .75rem;text-align:left;border-bottom:1px solid var(--bdr)}
+.manual-table td{padding:.4rem .5rem;border-bottom:1px solid rgba(148,163,184,.05)}
+.manual-table td input{width:100%;background:transparent;border:1px solid transparent;border-radius:6px;padding:.35rem .5rem;color:var(--txt);font-size:.83rem;transition:border-color .15s;outline:none}
+.manual-table td input:focus{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.06)}
+.tbl-add{margin-top:.5rem;padding:.45rem 1rem;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);border-radius:8px;color:var(--pri2);cursor:pointer;font-size:.82rem;font-weight:600;transition:all .15s}
+.tbl-add:hover{background:rgba(99,102,241,.2)}
+.tbl-del{background:transparent;border:none;color:var(--err);cursor:pointer;font-size:1rem;padding:0 .35rem;line-height:1;opacity:.6;transition:opacity .15s}
+.tbl-del:hover{opacity:1}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.25rem;
+  border-radius:8px;font-weight:600;font-size:.88rem;cursor:pointer;
+  transition:all var(--transition);border:none;
+}
+.btn-primary{background:var(--pri);color:#fff}
+.btn-primary:hover{background:var(--pri2);box-shadow:0 0 20px rgba(99,102,241,.4)}
+.btn-secondary{background:var(--card2);color:var(--txt);border:1px solid var(--bdr)}
+.btn-secondary:hover{border-color:rgba(99,102,241,.4);color:var(--pri)}
+.btn-success{background:rgba(34,197,94,.12);color:var(--ok);border:1px solid rgba(34,197,94,.25)}
+.btn-success:hover{background:rgba(34,197,94,.22)}
+.btn-sm{padding:.4rem .85rem;font-size:.8rem}
+
+/* ── Alerts ── */
+.alert{padding:.75rem 1rem;border-radius:10px;font-size:.88rem;margin-bottom:1rem;display:flex;align-items:flex-start;gap:.6rem}
+.alert-warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:#fbbf24}
+.alert-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171}
+.alert-ok{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:#4ade80}
+.alert-info{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);color:#7dd3fc}
+
+/* ── Bottleneck cards ── */
+.bn-grid{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.75rem}
+.bn{text-align:center;background:var(--card);padding:1.1rem .75rem;border-radius:12px;border:1px solid var(--bdr);min-width:90px;flex:1}
+.bn .sid{font-weight:700;color:var(--muted);font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.35rem}
+.bn .pct{font-size:1.35rem;font-family:'Fira Code',monospace;font-weight:700;color:var(--txt);margin-bottom:.4rem}
+
+/* ── Section separator ── */
+.sep{border:none;border-top:1px solid var(--bdr);margin:1.5rem 0}
+
+/* ── Save / Export row ── */
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.25rem}
+.action-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--radius);padding:1.25rem}
+.action-card h3{font-family:'Fira Code',monospace;font-size:.9rem;font-weight:700;margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem}
+.name-input{
+  width:100%;background:var(--card2);border:1px solid var(--bdr);
+  border-radius:8px;padding:.5rem .75rem;color:var(--txt);font-size:.85rem;
+  outline:none;transition:border-color var(--transition);margin-bottom:.75rem;
+}
+.name-input:focus{border-color:rgba(99,102,241,.5)}
+
+/* ── JES Step cards ── */
+.js{
+  background:var(--card);border:1px solid var(--bdr);border-left:3px solid var(--pri);border-radius:var(--radius);
+  padding:1.1rem;margin-bottom:.75rem;
+  position:relative;overflow:hidden;transition:all var(--transition);
+}
+.js::before{display:none}
+.js:hover{background:var(--card2);border-color:var(--pri)}
+.js .h{display:flex;justify-content:space-between;align-items:center;font-weight:600;color:var(--txt);font-size:.95rem;margin-bottom:.5rem}
+.js .t{font-family:'Fira Code',monospace;color:var(--pri);font-weight:600;font-size:.8rem;background:rgba(0,240,255,.06);border:1px solid rgba(0,240,255,.15);padding:.15rem .5rem;border-radius:0px}
+.js .d{color:var(--muted);font-size:.78rem;font-family:'Fira Code',monospace;display:flex;gap:.75rem;flex-wrap:wrap}
+.js .d code{background:rgba(255,255,255,.04);color:var(--txt);padding:1px 6px;border-radius:0px;font-size:.78rem;border:1px solid rgba(255,255,255,0.05)}
+.js .kp{color:var(--warn);font-size:.76rem;margin-top:.45rem;display:flex;align-items:center;gap:.35rem}
+
+/* ── Progress bar ── */
+.pt{background:rgba(255,255,255,.04);border-radius:0px;height:4px;overflow:hidden;margin:.55rem 0}
+.pb{height:100%;border-radius:0px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* ── Sustainability cards ── */
+.sc{background:var(--card);border:1px solid var(--bdr);border-left:3px solid var(--ok);border-radius:var(--radius);padding:1.25rem 1rem;text-align:left;transition:all var(--transition)}
+.sc:hover{border-color:var(--ok);background:var(--card2)}
+.sc .ico{font-size:1.5rem;margin-bottom:.5rem}
+.sc .v{font-family:'Fira Code',monospace;font-size:2rem;font-weight:700;color:var(--ok);margin:.25rem 0}
+.sc .l{font-size:.65rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.12em}
+
+/* ── Compare delta cards ── */
+.delta-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--radius);padding:1.25rem 1rem;text-align:center}
+.delta-card .dl{font-size:.62rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem}
+.delta-card .dv{font-family:'Fira Code',monospace;font-size:1.85rem;font-weight:700;color:var(--txt);margin:.4rem 0}
+.delta-card .dd{font-size:.78rem;font-weight:700;font-family:'Fira Code',monospace}
+
+/* ── Chart container ── */
+.chart-wrap{background:transparent;border-radius:var(--radius);margin:.75rem 0}
+.chart-wrap .js-plotly-plot .plotly .modebar{background:transparent!important}
+
+/* ── Split layout ── */
+.split{display:grid;grid-template-columns:1fr 2fr;gap:1.25rem;align-items:start}
+.split-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;align-items:start}
+
+/* ── Spinner ── */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Toast ── */
+#toast{
+  position:fixed;bottom:1.5rem;right:1.5rem;
+  background:var(--card2);border:1px solid var(--bdr);
+  border-radius:10px;padding:.75rem 1.25rem;
+  font-size:.85rem;color:var(--txt);
+  opacity:0;transform:translateY(8px);
+  transition:all .3s ease;pointer-events:none;z-index:999;
+}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* ── Footer ── */
+.ft{text-align:center;color:#475569;font-size:.68rem;padding:2rem 0 .5rem;font-family:'Fira Code',monospace;letter-spacing:.03em}
+
+/* ── Algo result section ── */
+.algo-header{
+  margin:1.5rem 0 .75rem;font-family:'Fira Code',monospace;font-size:1.05rem;
+  font-weight:700;color:var(--txt);border-bottom:1px solid var(--bdr);padding-bottom:.5rem;
+}
+.algo-header span{color:var(--pri)}
+
+/* ── File input ── */
+.file-drop{
+  border:2px dashed var(--bdr);border-radius:var(--radius);
+  padding:2rem;text-align:center;cursor:pointer;transition:all var(--transition);
+  color:var(--muted);font-size:.88rem;
+}
+.file-drop:hover,.file-drop.drag-over{border-color:rgba(99,102,241,.5);background:rgba(99,102,241,.04);color:var(--pri)}
+.file-drop input{display:none}
+
+/* ── Code block ── */
+pre.code-md{
+  background:var(--card2);border:1px solid var(--bdr);border-radius:10px;
+  padding:1rem;font-size:.78rem;color:var(--txt);overflow:auto;
+  font-family:'Fira Code',monospace;white-space:pre;max-height:320px;
+}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;min-width:0;height:auto;position:static;flex-direction:row;flex-wrap:wrap;gap:.75rem}
+  .main{padding:1rem}
+  .metrics-grid{grid-template-columns:repeat(3,1fr)}
+  .split{grid-template-columns:1fr}
+  .action-row{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .metrics-grid,.metrics-grid-3,.metrics-grid-4{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="layout">
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand"><span>MB</span>4.0</div>
+      <div class="sub">Control Panel</div>
+    </div>
+
+    <!-- Simulation -->
+    <div>
+      <div class="sb-section">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        SIMULATION
+      </div>
+      <label class="ctrl-label">
+        <div class="ctrl-row">
+          <span>Cycle Time (sec)</span>
+          <span class="ctrl-val" id="ct-val">15.0</span>
+        </div>
+        <input type="range" id="cycle-time" min="5" max="60" step="0.5" value="15" oninput="syncSlider(this,'ct-val')"/>
+      </label>
+      <label class="ctrl-label" style="margin-top:.75rem">Algorithm</label>
+      <select class="sel" id="algorithm">
+        <option value="rpw">RPW (Ranked Positional Weight)</option>
+        <option value="greedy">Greedy (Largest Candidate)</option>
+        <option value="compare">Compare (Both)</option>
+      </select>
+    </div>
+
+    <!-- Energy -->
+    <div>
+      <div class="sb-section">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        ENERGY MODEL
+      </div>
+      <label class="ctrl-label">Station Power (kW)
+        <input type="number" class="num-input" id="kwh-rate" value="7.2" min="0.1" max="50" step="0.1" style="margin-top:.35rem"/>
+      </label>
+      <label class="ctrl-label" style="margin-top:.6rem">Energy Cost ($/kWh)
+        <input type="number" class="num-input" id="cost-kwh" value="2.5" min="0.1" max="20" step="0.1" style="margin-top:.35rem"/>
+      </label>
+      <label class="ctrl-label" style="margin-top:.6rem">CO₂ Factor (kg/kWh)
+        <input type="number" class="num-input" id="co2-fac" value="0.47" min="0.01" max="2" step="0.01" style="margin-top:.35rem"/>
+      </label>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <div class="header-title">
+          <span class="hi">MANUFACTURE</span>.BALANCE
+          <span style="font-size:0.9rem;color:var(--muted);font-weight:400;vertical-align:middle;">[v4.0]</span>
+        </div>
+        <div style="font-size:0.75rem;color:var(--muted);font-family:'Fira Code',monospace;margin-top:0.25rem;letter-spacing:0.02em;text-align:left;">
+          SYSTEM_STATUS: ACTIVE // DECISION_SUPPORT_ENGINE
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="b b-i">LINE OPTIMIZATION</span>
+        <span class="b b-g">ENERGY EFFICIENCY</span>
+        <span class="b b-p">OPERATOR 4.0</span>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" onclick="switchTab('input',this)" id="tab-input">Data Input</button>
+      <button class="tab-btn" onclick="switchTab('results',this)" id="tab-results">Results</button>
+      <button class="tab-btn" onclick="switchTab('operator',this)" id="tab-operator">Operator JES</button>
+      <button class="tab-btn" onclick="switchTab('sustain',this)" id="tab-sustain">Sustainability</button>
+      <button class="tab-btn" onclick="switchTab('compare',this)" id="tab-compare">Compare</button>
+    </nav>
+
+    <!-- ═══ TAB 1: Data Input ═══ -->
+    <div class="tab-panel active" id="panel-input">
+      <div class="sh">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Task Data Input
+      </div>
+
+      <div class="radio-group" id="src-group">
+        <button class="radio-btn active" onclick="setSource('sample',this)">Sample Data</button>
+        <button class="radio-btn" onclick="setSource('upload',this)">Upload CSV</button>
+        <button class="radio-btn" onclick="setSource('manual',this)">Manual Entry</button>
+      </div>
+
+      <!-- Sample -->
+      <div id="src-sample">
+        <button class="btn btn-primary" onclick="loadSample()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Load Sample (10 tasks)
+        </button>
+      </div>
+
+      <!-- Upload CSV -->
+      <div id="src-upload" style="display:none">
+        <div class="file-drop" id="file-drop" onclick="document.getElementById('csv-file').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+          <input type="file" id="csv-file" accept=".csv" onchange="uploadCSV(this)"/>
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:.5rem;opacity:.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div>Click or drag &amp; drop a CSV file</div>
+          <div style="font-size:.75rem;margin-top:.35rem;opacity:.6">Columns: task_id, task_name, duration, predecessors</div>
+        </div>
+      </div>
+
+      <!-- Manual Entry -->
+      <div id="src-manual" style="display:none">
+        <div style="overflow-x:auto;margin-bottom:.75rem">
+          <table class="manual-table" id="manual-tbl">
+            <thead><tr><th>task_id</th><th>task_name</th><th>duration</th><th>predecessors</th><th></th></tr></thead>
+            <tbody id="manual-body">
+              <tr>
+                <td><input value="T1" placeholder="T1"/></td>
+                <td><input value="Task 1" placeholder="Task name"/></td>
+                <td><input value="5" type="number" min="0.1" step="0.1" placeholder="5"/></td>
+                <td><input value="" placeholder="e.g. T1 T2"/></td>
+                <td><button class="tbl-del" onclick="delRow(this)">×</button></td>
+              </tr>
+              <tr>
+                <td><input value="T2" placeholder="T2"/></td>
+                <td><input value="Task 2" placeholder="Task name"/></td>
+                <td><input value="4" type="number" min="0.1" step="0.1" placeholder="4"/></td>
+                <td><input value="T1" placeholder="e.g. T1 T2"/></td>
+                <td><button class="tbl-del" onclick="delRow(this)">×</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button class="tbl-add" onclick="addRow()">+ Add Row</button>
+        <button class="btn btn-primary btn-sm" style="margin-left:.75rem" onclick="confirmManual()">Confirm Data</button>
+      </div>
+
+      <!-- Data summary + DAG (shown after load) -->
+      <div id="input-result" style="display:none;margin-top:1.25rem">
+        <div class="split">
+          <div>
+            <div class="metrics-grid-4" id="summary-cards" style="grid-template-columns:1fr 1fr"></div>
+          </div>
+          <div>
+            <div class="chart-wrap" id="dag-chart" style="height:420px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB 2: Results ═══ -->
+    <div class="tab-panel" id="panel-results">
+      <div class="sh">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Line Balancing Results
+      </div>
+      <div id="results-warn" class="alert alert-warn">Dataset missing: Load data in the Data Input tab first.</div>
+      <div id="results-content" style="display:none">
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem">
+          <button class="btn btn-primary" id="run-btn" onclick="runSolver()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Run Solver
+          </button>
+        </div>
+        <div id="solver-output"></div>
+        <div id="action-section" style="display:none">
+          <hr class="sep"/>
+          <div class="action-row">
+            <div class="action-card">
+              <h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save Scenario to Database
+              </h3>
+              <div id="export-algo-row" style="margin-bottom:.65rem;display:none">
+                <label class="ctrl-label" style="margin-bottom:.4rem">Algorithm for save/export</label>
+                <select class="sel" id="export-algo-sel"></select>
+              </div>
+              <input class="name-input" id="scen-name" placeholder="Scenario name…" value="RPW_CT15"/>
+              <button class="btn btn-primary btn-sm" onclick="saveScenario()">Save Scenario</button>
+              <div id="save-msg" style="margin-top:.5rem;font-size:.82rem"></div>
+            </div>
+            <div class="action-card">
+              <h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download Excel Report
+              </h3>
+              <button class="btn btn-success btn-sm" onclick="downloadExcel()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download .xlsx
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB 3: Operator JES ═══ -->
+    <div class="tab-panel" id="panel-operator">
+      <div class="sh">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h20v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2z"/><path d="M12 3C8.134 3 5 6.134 5 10v8h14v-8c0-3.866-3.134-7-7-7z"/></svg>
+        Digital Work Instructions
+        <span class="b b-i" style="margin-left:.5rem">JES</span>
+      </div>
+      <div id="jes-warn" class="alert alert-warn">Solver results missing: Execute line balancing in the Results tab first.</div>
+      <div id="jes-content" style="display:none">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem">
+          <div style="flex:1">
+            <label class="ctrl-label">Select Station</label>
+            <select class="sel" id="jes-sel" onchange="renderJES()"></select>
+          </div>
+        </div>
+        <div class="metrics-grid-3" id="jes-metrics"></div>
+        <div class="pt" style="height:6px;margin:1rem 0 1.5rem"><div class="pb" id="jes-util-bar" style="width:0%"></div></div>
+        <div class="sh" style="margin-top:0">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          Work Steps
+        </div>
+        <div id="jes-steps"></div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:.75rem" onclick="toggleMdExport()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Export Markdown
+        </button>
+        <div id="md-export" style="display:none;margin-top:.75rem">
+          <pre class="code-md" id="md-code"></pre>
+          <button class="btn btn-secondary btn-sm" style="margin-top:.5rem" onclick="downloadMd()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download .md
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB 4: Sustainability ═══ -->
+    <div class="tab-panel" id="panel-sustain">
+      <div class="sh">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8C8 10 5.9 16.17 3.82 19.34A1 1 0 005 21c5-1 11-4 13-10 1.06-3.17.5-6.7-1-3zm0 0c0 0-4 2-6 8"/></svg>
+        Sustainability Report
+        <span class="b b-g" style="margin-left:.5rem">9TH WASTE</span>
+      </div>
+      <div id="sustain-warn" class="alert alert-warn">Solver results missing: Execute line balancing in the Results tab first.</div>
+      <div id="sustain-content" style="display:none">
+        <div class="metrics-grid-3" id="sustain-cards"></div>
+        <div class="sh">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Station-Level Analysis
+        </div>
+        <div class="chart-wrap" id="energy-chart" style="height:360px"></div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB 5: Compare ═══ -->
+    <div class="tab-panel" id="panel-compare">
+      <div class="sh">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 9l9-6 9 6M5 20h14"/><path d="M3 9l3 7a3 3 0 006 0l3-7M9 16v1M15 16v1"/></svg>
+        Scenario Comparison
+      </div>
+      <div id="cmp-info" class="alert alert-info">Save at least 2 scenarios in the Results tab to compare.</div>
+      <div id="cmp-content" style="display:none">
+        <div class="split-2" style="margin-bottom:1.25rem">
+          <div>
+            <label class="ctrl-label">Baseline Scenario</label>
+            <select class="sel" id="cmp-sc1" onchange="renderCompare()"></select>
+          </div>
+          <div>
+            <label class="ctrl-label">Target Scenario</label>
+            <select class="sel" id="cmp-sc2" onchange="renderCompare()"></select>
+          </div>
+        </div>
+        <div class="metrics-grid-4" id="delta-cards"></div>
+        <div class="chart-wrap" id="cmp-chart" style="height:380px;margin-top:1rem"></div>
+      </div>
+    </div>
+
+    <footer class="ft">MANUFACTURE BALANCE 4.0 &nbsp;·&nbsp; Sustainable Lean Manufacturing</footer>
+  </main>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   App State
+══════════════════════════════════════════════════════ */
+const S = {
+  tasks: null,         // [{task_id,task_name,duration,predecessors}]
+  results: null,       // [{algo,stations,metrics,energy,jes}]
+  scenarios: [],
+};
+
+const C = {
+  bg:'#020617',card:'#0f172a',card2:'#1e293b',
+  pri:'#6366f1',pri2:'#818cf8',
+  ok:'#22c55e',warn:'#f59e0b',err:'#ef4444',
+  txt:'#f8fafc',muted:'#94a3b8',bdr:'rgba(148,163,184,0.08)',
+};
+const LAYOUT_BASE = {
+  plot_bgcolor:'rgba(0,0,0,0)',paper_bgcolor:'rgba(0,0,0,0)',
+  font:{family:'Fira Code, monospace',color:C.txt,size:12},
+  margin:{l:16,r:16,t:48,b:16},
+  xaxis:{gridcolor:'rgba(148,163,184,0.06)',zerolinecolor:'rgba(148,163,184,0.06)'},
+  yaxis:{gridcolor:'rgba(148,163,184,0.06)',zerolinecolor:'rgba(148,163,184,0.06)'},
+  legend:{orientation:'h',yanchor:'bottom',y:1.02,xanchor:'right',x:1,font:{size:11},bgcolor:'rgba(0,0,0,0)'},
+};
+const PLOTLY_CFG = {responsive:true,displayModeBar:false};
+
+/* ══ Utility ══ */
+function toast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.borderColor=type==='err'?'rgba(239,68,68,.3)':type==='warn'?'rgba(245,158,11,.3)':'rgba(34,197,94,.3)';
+  el.style.color=type==='err'?'#f87171':type==='warn'?'#fbbf24':'#4ade80';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+function syncSlider(el,valId){
+  const v=parseFloat(el.value).toFixed(1);
+  document.getElementById(valId).textContent=v;
+  const pct=((el.value-el.min)/(el.max-el.min)*100).toFixed(1);
+  el.style.setProperty('--pct',pct+'%');
+}
+// Init slider percent
+syncSlider(document.getElementById('cycle-time'),'ct-val');
+
+function getCT(){return parseFloat(document.getElementById('cycle-time').value);}
+function getAlgo(){return document.getElementById('algorithm').value;}
+function getKwh(){return parseFloat(document.getElementById('kwh-rate').value)/3600;}
+function getCostKwh(){return parseFloat(document.getElementById('cost-kwh').value);}
+function getCO2(){return parseFloat(document.getElementById('co2-fac').value);}
+
+/* ══ Tabs ══ */
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='compare') loadCompareScenarios();
+}
+
+/* ══ Data source toggle ══ */
+let dataSource='sample';
+function setSource(src,btn){
+  dataSource=src;
+  document.querySelectorAll('#src-group .radio-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['sample','upload','manual'].forEach(s=>{
+    document.getElementById('src-'+s).style.display=s===src?'block':'none';
+  });
+}
+
+/* ══ Sample Data ══ */
+async function loadSample(){
+  try{
+    const r=await fetch('/api/sample');
+    const d=await r.json();
+    if(!d.ok) throw new Error(d.error);
+    S.tasks=d.tasks;
+    showInputResult(d.summary,d.dag);
+    toast('Loaded 10 tasks from sample_tasks.csv');
+    enableResults();
+  }catch(e){toast(e.message,'err')}
+}
+
+/* ══ Upload CSV ══ */
+async function uploadCSV(inp){
+  const f=inp.files[0]; if(!f) return;
+  const fd=new FormData(); fd.append('file',f);
+  try{
+    const r=await fetch('/api/upload',{method:'POST',body:fd});
+    const d=await r.json();
+    if(!d.ok) throw new Error(d.error);
+    S.tasks=d.tasks;
+    showInputResult(d.summary,d.dag);
+    toast('CSV uploaded and validated!');
+    enableResults();
+  }catch(e){toast(e.message,'err')}
+}
+function dragOver(e){e.preventDefault();document.getElementById('file-drop').classList.add('drag-over')}
+function dragLeave(e){document.getElementById('file-drop').classList.remove('drag-over')}
+function dropFile(e){
+  e.preventDefault();
+  document.getElementById('file-drop').classList.remove('drag-over');
+  const f=e.dataTransfer.files[0];
+  if(!f||!f.name.endsWith('.csv')) return toast('Please drop a .csv file','warn');
+  const inp=document.getElementById('csv-file');
+  const dt=new DataTransfer(); dt.items.add(f);
+  inp.files=dt.files;
+  uploadCSV(inp);
+}
+
+/* ══ Manual Entry ══ */
+function addRow(){
+  const body=document.getElementById('manual-body');
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><input placeholder="T?"/></td><td><input placeholder="Task name"/></td><td><input type="number" min="0.1" step="0.1" placeholder="5"/></td><td><input placeholder="e.g. T1"/></td><td><button class="tbl-del" onclick="delRow(this)">×</button></td>`;
+  body.appendChild(tr);
+}
+function delRow(btn){
+  const rows=document.getElementById('manual-body').rows;
+  if(rows.length<=1) return toast('At least one row required','warn');
+  btn.closest('tr').remove();
+}
+async function confirmManual(){
+  const rows=[...document.getElementById('manual-body').rows];
+  const tasks=rows.map(r=>{
+    const cells=r.querySelectorAll('input');
+    return{task_id:cells[0].value.trim(),task_name:cells[1].value.trim(),duration:parseFloat(cells[2].value)||0,predecessors:cells[3].value.trim()};
+  });
+  try{
+    const r=await fetch('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tasks})});
+    const d=await r.json();
+    if(!d.ok) throw new Error(d.error);
+    S.tasks=d.tasks;
+    showInputResult(d.summary,d.dag);
+    toast('Data validated!');
+    enableResults();
+  }catch(e){toast(e.message,'err')}
+}
+
+/* ══ Show input result ══ */
+function showInputResult(summary,dag){
+  document.getElementById('input-result').style.display='block';
+  const sc=document.getElementById('summary-cards');
+  sc.innerHTML=`
+    ${mc(summary.task_count,'Tasks',C.pri)}
+    ${mc(summary.total_work_content+'s','Work Content',C.warn)}
+    ${mc(summary.entry_tasks.length,'Start Nodes',C.ok)}
+    ${mc(summary.exit_tasks.length,'End Nodes',C.err)}
+  `;
+  renderDAG(dag);
+}
+function enableResults(){
+  document.getElementById('results-warn').style.display='none';
+  document.getElementById('results-content').style.display='block';
+  const n=document.getElementById('scen-name');
+  n.value=getAlgo().toUpperCase().slice(0,3)+'_CT'+getCT();
+}
+
+/* ══ DAG Chart ══ */
+function renderDAG(dag){
+  if(!dag||!dag.node_x) return;
+  const traces=[
+    {type:'scatter',x:dag.edge_x,y:dag.edge_y,mode:'lines',line:{color:'rgba(148,163,184,0.3)',width:2},hoverinfo:'none',showlegend:false},
+    {type:'scatter',x:dag.node_x,y:dag.node_y,mode:'markers+text',
+      text:dag.node_labels,textposition:'middle center',
+      hovertext:dag.node_text,hoverinfo:'text',
+      marker:{size:38,color:dag.node_color,colorscale:'Viridis',showscale:true,
+        colorbar:{title:'Duration (s)',thickness:10,len:0.8,tickfont:{family:'Fira Code',color:C.txt}},
+        line:{width:2,color:C.bg}},
+      textfont:{color:'white',size:11},showlegend:false},
+  ];
+  const layout={...LAYOUT_BASE,
+    title:{text:'Task Precedence Graph (DAG)',font:{size:14}},
+    xaxis:{visible:false},yaxis:{visible:false},height:400,margin:{l:10,r:10,t:40,b:10}};
+  Plotly.newPlot('dag-chart',traces,layout,PLOTLY_CFG);
+}
+
+/* ═══ SOLVER ═══ */
+async function runSolver(){
+  if(!S.tasks){toast('Load data first','warn');return;}
+  const btn=document.getElementById('run-btn');
+  btn.innerHTML='<span class="spinner"></span> Running…';
+  btn.disabled=true;
+  try{
+    const body={
+      tasks:S.tasks,cycle_time:getCT(),algorithm:getAlgo(),
+      kwh_per_sec:getKwh(),cost_per_kwh:getCostKwh(),co2_factor:getCO2(),
+    };
+    const r=await fetch('/api/solve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!d.ok) throw new Error(d.error);
+    S.results=d.results;
+    renderResults(d.results);
+    toast('Solver complete!');
+  }catch(e){
+    toast(e.message,'err');
+    document.getElementById('solver-output').innerHTML=`<div class="alert alert-err">Solver Error: ${e.message}</div>`;
+  }finally{
+    btn.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run Solver';
+    btn.disabled=false;
+  }
+}
+
+function renderResults(results){
+  const out=document.getElementById('solver-output');
+  out.innerHTML='';
+  results.forEach((res,idx)=>{
+    const m=res.metrics;
+    const eff=m.line_efficiency;
+    const effColor=eff>=80?C.ok:eff>=60?C.warn:C.err;
+    let html='';
+    if(results.length>1) html+=`<div class="algo-header"><span>▸</span> ${res.algo} Algorithm</div>`;
+    html+=`<div class="metrics-grid" id="mc-${idx}">${mc(eff+'%','Efficiency',effColor)}${mc(m.balance_delay+'%','Balance Delay')}${mc(m.smoothness_index,'Smoothness')}${mc(m.num_stations,'Stations',C.pri)}${mc(m.theoretical_min_stations,'Theo. Min',C.muted)}</div>`;
+    html+=`<div class="chart-wrap" id="stn-chart-${idx}" style="height:${Math.max(220,res.stations.length*55+60)}px"></div>`;
+    html+=`<div class="bn-grid" id="bn-${idx}"></div>`;
+    out.insertAdjacentHTML('beforeend',html);
+    // Station load chart
+    renderStationChart(res,idx);
+    // Bottleneck cards
+    const bnEl=document.getElementById('bn-'+idx);
+    m.bottleneck_scores.forEach(bn=>{
+      const bc=bn.is_bottleneck?'b-r':bn.load_percent>=70?'b-y':'b-g';
+      const bl=bn.is_bottleneck?'BOTTLENECK':'OPTIMAL';
+      bnEl.insertAdjacentHTML('beforeend',`<div class="bn"><div class="sid">Station ${bn.station_id}</div><div class="pct">${bn.load_percent}%</div><span class="b ${bc}">${bl}</span></div>`);
+    });
+  });
+
+  // Show action section
+  document.getElementById('action-section').style.display='block';
+  // Setup algo selector for save/export
+  const selRow=document.getElementById('export-algo-row');
+  const algoSel=document.getElementById('export-algo-sel');
+  if(results.length>1){
+    selRow.style.display='block';
+    algoSel.innerHTML=results.map(r=>`<option value="${r.algo}">${r.algo}</option>`).join('');
+  } else {
+    selRow.style.display='none';
+  }
+  // Update scenario name default
+  document.getElementById('scen-name').value=results[0].algo.slice(0,3)+'_CT'+getCT();
+
+  // Feed operator & sustainability tabs
+  updateJESTab(results);
+  updateSustainTab(results);
+}
+
+function renderStationChart(res,idx){
+  const ct=getCT(); const traces=[];
+  res.stations.forEach(s=>{
+    const tasks=s.tasks.join(', ');
+    traces.push({type:'bar',orientation:'h',x:[s.total_time],y:[`Stn ${s.station_id}`],
+      name:`Stn ${s.station_id}`,text:`${s.total_time}s  (${tasks})`,textposition:'inside',textfont:{size:11},
+      marker:{color:C.pri,line:{width:0}},
+      hovertemplate:`<b>Station ${s.station_id}</b><br>Load: ${s.total_time}s<br>Idle: ${s.idle_time}s<br>Tasks: ${tasks}<extra></extra>`,
+    });
+    if(s.idle_time>0) traces.push({type:'bar',orientation:'h',x:[s.idle_time],y:[`Stn ${s.station_id}`],
+      name:'Idle',showlegend:false,text:`${s.idle_time}s`,textposition:'inside',textfont:{size:10,color:'rgba(248,250,252,0.5)'},
+      marker:{color:'rgba(239,68,68,0.2)',line:{width:0}},
+    });
+  });
+  const layout={...LAYOUT_BASE,barmode:'stack',
+    title:{text:`Station Loads — ${res.algo}`,font:{size:14}},
+    xaxis:{...LAYOUT_BASE.xaxis,title:'Time (sec)'},yaxis:{...LAYOUT_BASE.yaxis,title:''},
+    height:Math.max(220,res.stations.length*55+60),showlegend:false,
+    shapes:[{type:'line',x0:ct,x1:ct,y0:-0.5,y1:res.stations.length-0.5,line:{color:C.warn,dash:'dash',width:2}}],
+    annotations:[{x:ct,y:res.stations.length-0.5,text:`CT=${ct}s`,showarrow:false,font:{color:C.warn,size:11},xanchor:'left',yanchor:'top'}],
+  };
+  Plotly.newPlot('stn-chart-'+idx,traces,layout,PLOTLY_CFG);
+}
+
+/* ══ JES Tab ══ */
+function updateJESTab(results){
+  const data=results[0];
+  document.getElementById('jes-warn').style.display='none';
+  document.getElementById('jes-content').style.display='block';
+  const sel=document.getElementById('jes-sel');
+  const ids=Object.keys(data.jes).map(Number).sort((a,b)=>a-b);
+  sel.innerHTML=ids.map(id=>`<option value="${id}">Station ${id}</option>`).join('');
+  renderJES();
+}
+function renderJES(){
+  const data=S.results[0];
+  const sid=document.getElementById('jes-sel').value;
+  const jes=data.jes[sid];
+  if(!jes) return;
+  const pct=jes.utilization_pct;
+  const barC=pct>=80?C.ok:pct>=60?C.warn:C.err;
+  document.getElementById('jes-metrics').innerHTML=`
+    ${mc(jes.cycle_time+'s','Cycle Time',C.muted)}
+    ${mc(jes.total_time+'s','Load',C.pri)}
+    ${mc(pct+'%','Utilization',pct>=80?C.ok:C.warn)}
+  `;
+  const bar=document.getElementById('jes-util-bar');
+  bar.style.width=Math.min(pct,100)+'%';
+  bar.style.background=`linear-gradient(90deg,${barC},${barC}88)`;
+  const steps=document.getElementById('jes-steps');
+  steps.innerHTML='';
+  jes.steps.forEach(s=>{
+    const prog=Math.round((s.cumulative_time/jes.cycle_time)*100);
+    const kp=s.key_points?`<div class="kp"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 013 3c0 1.5-.8 2.8-2 3.4V17l1 3H10l1-3V8.4A3.5 3.5 0 019 5a3 3 0 013-3z"/></svg> ${esc(s.key_points)}</div>`:'';
+    steps.insertAdjacentHTML('beforeend',`<div class="js"><div class="h"><span>Step ${s.step}: ${esc(s.task_name)}</span><span class="t">${s.duration}s</span></div><div class="d"><span>ID: <code>${esc(s.task_id)}</code></span><span>Σ ${s.cumulative_time}/${jes.cycle_time}s</span><span>Rem: ${s.remaining_time}s</span></div><div class="pt"><div class="pb" style="width:${prog}%;background:linear-gradient(90deg,${C.pri},${C.pri2})"></div></div>${kp}</div>`);
+  });
+}
+function toggleMdExport(){
+  const el=document.getElementById('md-export');
+  if(el.style.display==='none'){
+    const data=S.results[0];
+    const sid=document.getElementById('jes-sel').value;
+    const jes=data.jes[sid];
+    fetch('/api/jes_markdown',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jes})})
+      .then(r=>r.json()).then(d=>{document.getElementById('md-code').textContent=d.markdown;});
+    el.style.display='block';
+  } else el.style.display='none';
+}
+function downloadMd(){
+  const md=document.getElementById('md-code').textContent;
+  const sid=document.getElementById('jes-sel').value;
+  const blob=new Blob([md],{type:'text/markdown'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`JES_Station_${sid}.md`;a.click();
+}
+
+/* ══ Sustainability Tab ══ */
+function updateSustainTab(results){
+  const e=results[0].energy;
+  document.getElementById('sustain-warn').style.display='none';
+  document.getElementById('sustain-content').style.display='block';
+  document.getElementById('sustain-cards').innerHTML=`
+    <div class="sc"><div class="ico">⚡</div><div class="v">${e.total_energy_kwh.toFixed(4)}</div><div class="l">Energy Waste (kWh)</div></div>
+    <div class="sc"><div class="ico">💲</div><div class="v">$${e.total_cost.toFixed(2)}</div><div class="l">Waste Cost</div></div>
+    <div class="sc"><div class="ico">🌍</div><div class="v">${e.total_co2_kg.toFixed(4)}</div><div class="l">CO₂ Footprint (kg)</div></div>
+  `;
+  const labels=e.per_station.map(d=>`Stn ${d.station_id}`);
+  const traces=[
+    {type:'bar',x:labels,y:e.per_station.map(d=>d.idle_time),name:'Idle Time (s)',marker:{color:C.err,opacity:.8}},
+    {type:'bar',x:labels,y:e.per_station.map(d=>d.energy_kwh*1000),name:'Energy Waste (Wh)',marker:{color:C.warn,opacity:.8}},
+  ];
+  Plotly.newPlot('energy-chart',traces,{...LAYOUT_BASE,barmode:'group',height:350,margin:{b:0,t:10}},PLOTLY_CFG);
+}
+
+/* ══ Save Scenario ══ */
+async function saveScenario(){
+  if(!S.results){toast('Run solver first','warn');return;}
+  const algoSel=document.getElementById('export-algo-sel');
+  const algo=S.results.length>1?algoSel.value:S.results[0].algo;
+  const res=S.results.find(r=>r.algo===algo)||S.results[0];
+  const body={
+    name:document.getElementById('scen-name').value||'Scenario',
+    cycle_time:getCT(),algorithm:algo.toLowerCase(),
+    tasks:S.tasks,metrics:res.metrics,stations:res.stations,energy:res.energy,
+  };
+  try{
+    const r=await fetch('/api/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!d.ok) throw new Error(d.error);
+    document.getElementById('save-msg').innerHTML=`<span style="color:var(--ok)">Scenario saved successfully (ID: ${d.id})</span>`;
+    toast('Scenario saved!');
+  }catch(e){
+    document.getElementById('save-msg').innerHTML=`<span style="color:var(--err)">Error: ${e.message}</span>`;
+    toast(e.message,'err');
+  }
+}
+
+/* ══ Excel Export ══ */
+async function downloadExcel(){
+  if(!S.results){toast('Run solver first','warn');return;}
+  const algoSel=document.getElementById('export-algo-sel');
+  const algo=S.results.length>1?algoSel.value:S.results[0].algo;
+  const res=S.results.find(r=>r.algo===algo)||S.results[0];
+  const body={tasks:S.tasks,metrics:res.metrics,stations:res.stations,energy:res.energy,jes:res.jes,cycle_time:getCT(),algo};
+  try{
+    const r=await fetch('/api/export',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error('Export failed');
+    const blob=await r.blob();
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=`Report_${algo}_CT${getCT()}.xlsx`;a.click();
+    toast('Excel downloaded!');
+  }catch(e){toast(e.message,'err')}
+}
+
+/* ══ Compare Tab ══ */
+async function loadCompareScenarios(){
+  try{
+    const r=await fetch('/api/scenarios');
+    const d=await r.json();
+    if(!d.ok) return;
+    S.scenarios=d.scenarios;
+    const info=document.getElementById('cmp-info');
+    const content=document.getElementById('cmp-content');
+    if(d.scenarios.length<2){info.style.display='flex';content.style.display='none';return;}
+    info.style.display='none';content.style.display='block';
+    const opts=d.scenarios.map(s=>`<option value="${s.id}">[${s.algorithm.toUpperCase()}] ${s.name} (CT=${s.cycle_time})</option>`).join('');
+    document.getElementById('cmp-sc1').innerHTML=opts;
+    document.getElementById('cmp-sc2').innerHTML=opts;
+    if(d.scenarios.length>=2) document.getElementById('cmp-sc2').selectedIndex=1;
+    renderCompare();
+  }catch(e){console.error(e)}
+}
+async function renderCompare(){
+  const id1=document.getElementById('cmp-sc1').value;
+  const id2=document.getElementById('cmp-sc2').value;
+  try{
+    const [r1,r2]=await Promise.all([fetch(`/api/scenarios/${id1}`),fetch(`/api/scenarios/${id2}`)]);
+    const [d1,d2]=await Promise.all([r1.json(),r2.json()]);
+    if(!d1.ok||!d2.ok) return;
+    const sc1=d1.scenario; const sc2=d2.scenario;
+    const m1=sc1.results; const m2=sc2.results;
+    if(!m1||!m2) return;
+    // Delta cards
+    document.getElementById('delta-cards').innerHTML=`
+      ${deltaCard('Efficiency',m1.line_efficiency,m2.line_efficiency,'%',false)}
+      ${deltaCard('Stations',m1.num_stations,m2.num_stations,'',true)}
+      ${deltaCard('Smoothness',m1.smoothness_index,m2.smoothness_index,'',true)}
+      ${deltaCard('Energy Waste',(m1.total_energy_kwh||0),(m2.total_energy_kwh||0),' kWh',true)}
+    `;
+    // Comparison chart
+    const st1=m1.stations||[]; const st2=m2.stations||[];
+    const labels1=st1.map((_,i)=>`Stn ${i+1}`);
+    const labels2=st2.map((_,i)=>`Stn ${i+1}`);
+    const allLabels=[...new Set([...labels1,...labels2])];
+    const traces=[
+      {type:'bar',name:`Baseline: ${sc1.name}`,x:labels1,y:st1.map(s=>s.total_time||0),marker:{color:C.muted}},
+      {type:'bar',name:`Target: ${sc2.name}`,x:labels2,y:st2.map(s=>s.total_time||0),marker:{color:C.pri}},
+    ];
+    const shapes=[{type:'line',x0:-0.5,x1:allLabels.length-0.5,y0:sc1.cycle_time,y1:sc1.cycle_time,line:{color:C.muted,dash:'dash',width:2}}];
+    const annotations=[{x:0,y:sc1.cycle_time,text:'Baseline CT',showarrow:false,font:{color:C.muted,size:11},xanchor:'left',yanchor:'bottom'}];
+    if(sc1.cycle_time!==sc2.cycle_time){
+      shapes.push({type:'line',x0:-0.5,x1:allLabels.length-0.5,y0:sc2.cycle_time,y1:sc2.cycle_time,line:{color:C.pri,dash:'dash',width:2}});
+      annotations.push({x:0,y:sc2.cycle_time,text:'Target CT',showarrow:false,font:{color:C.pri,size:11},xanchor:'left',yanchor:'bottom'});
+    }
+    Plotly.newPlot('cmp-chart',traces,{...LAYOUT_BASE,barmode:'group',title:{text:'Station Loads Comparison',font:{size:14}},yaxis:{...LAYOUT_BASE.yaxis,title:'Load Time (sec)'},height:380,shapes,annotations},PLOTLY_CFG);
+  }catch(e){console.error(e)}
+}
+
+/* ══ HTML helpers ══ */
+function mc(value,label,color){
+  const c=color||C.txt;
+  return `<div class="mc"><div class="v" style="color:${c}">${value}</div><div class="l">${label}</div></div>`;
+}
+function deltaCard(label,v1,v2,suffix,invert){
+  const diff=v2-v1;
+  const better=invert?diff<0:diff>0;
+  const clr=diff===0?C.muted:better?C.ok:C.err;
+  const sign=diff===0?'':better?(invert?'↓':'↑'):(invert?'↑':'↓');
+  return `<div class="delta-card"><div class="dl">${label}</div><div class="dv">${typeof v2==='number'?v2.toFixed(2):v2}${suffix}</div><div class="dd" style="color:${clr}">${sign} ${Math.abs(diff).toFixed(2)}${suffix} vs baseline</div></div>`;
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+</script>
+</body>
+</html>

@@ -29,7 +29,7 @@ def render_input_tab():
     if data_source == "Sample Data":
         try:
             df = parse_csv("sample_tasks.csv")
-            st.success("Loaded 10 tasks from `sample_tasks.csv`")
+            st.success("Loaded 10 tasks from `sample_tasks.csv`", icon=None)
         except Exception as e:
             st.error(str(e))
     elif data_source == "Upload CSV":
@@ -37,16 +37,16 @@ def render_input_tab():
         if uploaded:
             try:
                 df = parse_csv(io.BytesIO(uploaded.read()))
-                st.success("CSV uploaded and validated!")
+                st.success("CSV uploaded and validated!", icon=None)
             except ValueError as e:
                 st.error(f"Validation error: {e}")
     elif "Manual Entry" in data_source:
         default_data = pd.DataFrame({"task_id": ["T1", "T2"], "task_name": ["Task 1", "Task 2"], "duration": [5.0, 4.0], "predecessors": ["", "T1"]})
         edited = st.data_editor(default_data, num_rows="dynamic", use_container_width=True)
-        if st.button("✅ Confirm Data", type="primary"):
+        if st.button("Confirm Data", type="primary"):
             try:
                 df = parse_csv(io.StringIO(edited.to_csv(index=False)))
-                st.success("Data validated!")
+                st.success("Data validated!", icon=None)
             except ValueError as e:
                 st.error(f"Validation error: {e}")
                 df = None

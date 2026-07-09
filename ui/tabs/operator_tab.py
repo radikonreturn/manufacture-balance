@@ -12,7 +12,7 @@ def render_operator_tab(cycle_time):
     available_stations = st.session_state.get("stations_rpw") or st.session_state.get("stations_greedy")
 
     if not available_stations:
-        st.warning("⚠️ Run the solver in **Results** tab first.")
+        st.warning("Solver results missing: Execute line balancing in the Results tab first.", icon=None)
     else:
         jes_all = generate_jes(available_stations, cycle_time)
         selected_station = st.selectbox("Select Station", sorted(jes_all.keys()), format_func=lambda x: f"Station {x}")

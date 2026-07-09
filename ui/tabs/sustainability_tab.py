@@ -10,7 +10,7 @@ def render_sustainability_tab():
     energy_report = st.session_state.get("energy_rpw") or st.session_state.get("energy_greedy")
 
     if not energy_report:
-        st.warning("⚠️ Run the solver in **Results** tab first.")
+        st.warning("Solver results missing: Execute line balancing in the Results tab first.", icon=None)
     else:
         s1, s2, s3 = st.columns(3)
         with s1:
